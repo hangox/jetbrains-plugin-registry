@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.class
+
+# Bun
+server/bun.lock
+
+# Gradle
+.gradle/
+.kotlin/
+gradle-plugin/build/
+gradle-plugin/.gradle/
+gradle-plugin/.kotlin/
+
+# IDE
+.idea/
+
+# Data (runtime)
+server/data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Drizzle migrations (generated)
+server/drizzle/*.sql
+
+# Temp files
+*.tmp
+*.swp
+*~

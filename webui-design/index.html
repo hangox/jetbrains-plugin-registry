@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JetBrains Plugin Registry - Web UI Design</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2563EB',
+            'primary-hover': '#1D4ED8',
+            'primary-light': '#DBEAFE',
+            secondary: '#1E293B',
+            cta: '#F97316',
+            'cta-hover': '#EA580C',
+            surface: '#F8FAFC',
+            'surface-raised': '#FFFFFF',
+            border: '#E2E8F0',
+            'border-hover': '#CBD5E1',
+            text: '#1E293B',
+            'text-muted': '#64748B',
+            'text-light': '#94A3B8',
+            success: '#059669',
+            'success-bg': '#ECFDF5',
+            'success-border': '#A7F3D0',
+            danger: '#DC2626',
+            'danger-bg': '#FEF2F2',
+            'danger-border': '#FECACA',
+            'danger-hover': '#B91C1C',
+            warning: '#D97706',
+            'warning-bg': '#FFFBEB',
+          },
+          fontFamily: {
+            sans: ['IBM Plex Sans', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+  </style>
+</head>
+<body class="bg-surface text-text font-sans antialiased min-h-screen">
+
+  <!-- ========== LOGIN PAGE ========== -->
+  <section id="page-login" class="min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-sm">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+          </svg>
+        </div>
+        <h1 class="text-xl font-bold text-secondary">Plugin Registry</h1>
+        <p class="text-sm text-text-muted mt-1">Sign in to manage plugins</p>
+      </div>
+
+      <!-- Login Form -->
+      <div class="bg-white border border-border rounded-xl p-6">
+        <form onsubmit="handleLogin(event)">
+          <div class="mb-4">
+            <label for="login-username" class="block text-sm font-medium text-secondary mb-1.5">Username</label>
+            <input type="text" id="login-username" placeholder="admin" autocomplete="username"
+                   class="w-full px-3.5 py-2.5 bg-white border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" />
+          </div>
+          <div class="mb-5">
+            <label for="login-password" class="block text-sm font-medium text-secondary mb-1.5">Password</label>
+            <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password"
+                   class="w-full px-3.5 py-2.5 bg-white border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" />
+          </div>
+          <div id="login-error" class="text-xs text-danger mb-3 hidden">Invalid username or password.</div>
+          <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+            Sign In
+          </button>
+        </form>
+      </div>
+
+      <p class="text-xs text-text-light text-center mt-4">
+        Credentials configured via <code class="font-mono bg-surface px-1.5 py-0.5 rounded">ADMIN_USER</code> and <code class="font-mono bg-surface px-1.5 py-0.5 rounded">ADMIN_PASS</code> env vars
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== APP (hidden until login) ========== -->
+  <div id="app-container" class="hidden">
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14">
+        <!-- Logo -->
+        <a href="#" onclick="showPage('list')" class="flex items-center gap-2.5 cursor-pointer group">
+          <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <svg class="w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
+          </div>
+          <span class="font-semibold text-secondary text-[15px] group-hover:text-primary transition-colors duration-200">Plugin Registry</span>
+        </a>
+
+        <!-- Nav Links + Logout -->
+        <div class="flex items-center gap-1">
+          <a href="#" onclick="showPage('list')" id="nav-list"
+             class="nav-link px-3 py-1.5 text-sm font-medium rounded-md transition-colors duration-200 text-text-muted hover:text-text hover:bg-surface cursor-pointer">
+            Plugins
+          </a>
+          <a href="#" onclick="showPage('upload')" id="nav-upload"
+             class="nav-link px-3 py-1.5 text-sm font-medium rounded-md transition-colors duration-200 text-text-muted hover:text-text hover:bg-surface cursor-pointer">
+            Upload
+          </a>
+          <a href="#" onclick="showPage('stats')" id="nav-stats"
+             class="nav-link px-3 py-1.5 text-sm font-medium rounded-md transition-colors duration-200 text-text-muted hover:text-text hover:bg-surface cursor-pointer">
+            Stats
+          </a>
+          <div class="w-px h-5 bg-border mx-2"></div>
+          <button onclick="handleLogout()" class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-text-muted hover:text-danger rounded-md transition-colors duration-200 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+            </svg>
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- ============================== -->
+    <!-- PAGE: Plugin List (Home)       -->
+    <!-- ============================== -->
+    <section id="page-list" class="page-section active">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-secondary">Plugins</h1>
+          <p class="text-sm text-text-muted mt-0.5">15 plugins registered</p>
+        </div>
+        <a href="#" onclick="showPage('upload')" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer w-fit">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          Upload Plugin
+        </a>
+      </div>
+
+      <!-- Search -->
+      <div class="relative mb-6">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-text-light" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+        <input type="text" placeholder="Search by name or plugin ID..."
+               class="w-full pl-10 pr-4 py-2.5 bg-white border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" />
+      </div>
+
+      <!-- Plugin Cards -->
+      <div class="space-y-3">
+        <!-- Card 1 -->
+        <a href="#" onclick="showPage('detail')" class="block bg-white border border-border rounded-xl p-4 sm:p-5 hover:border-primary/30 hover:shadow-sm transition-all duration-200 cursor-pointer group">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h3 class="text-[15px] font-semibold text-secondary group-hover:text-primary transition-colors duration-200">
+                  Code Formatter Pro
+                </h3>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-primary-light text-primary">
+                  v2.4.1
+                </span>
+              </div>
+              <p class="text-sm text-text-muted mt-1 font-mono text-[13px]">com.example.codeformatter</p>
+              <div class="flex items-center gap-3 mt-2.5 text-xs text-text-light">
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                  JetBrains Labs
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
+                  5 versions
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  2026-02-21
+                </span>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-text-light group-hover:text-primary transition-colors duration-200 shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </div>
+        </a>
+
+        <!-- Card 2 -->
+        <a href="#" onclick="showPage('detail')" class="block bg-white border border-border rounded-xl p-4 sm:p-5 hover:border-primary/30 hover:shadow-sm transition-all duration-200 cursor-pointer group">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h3 class="text-[15px] font-semibold text-secondary group-hover:text-primary transition-colors duration-200">
+                  Database Navigator
+                </h3>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-primary-light text-primary">
+                  v3.1.0
+                </span>
+              </div>
+              <p class="text-sm text-text-muted mt-1 font-mono text-[13px]">com.example.dbnavigator</p>
+              <div class="flex items-center gap-3 mt-2.5 text-xs text-text-light">
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                  DataTools Inc
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
+                  3 versions
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  2026-02-20
+                </span>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-text-light group-hover:text-primary transition-colors duration-200 shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </div>
+        </a>
+
+        <!-- Card 3 -->
+        <a href="#" onclick="showPage('detail')" class="block bg-white border border-border rounded-xl p-4 sm:p-5 hover:border-primary/30 hover:shadow-sm transition-all duration-200 cursor-pointer group">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h3 class="text-[15px] font-semibold text-secondary group-hover:text-primary transition-colors duration-200">
+                  API Doc Generator
+                </h3>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-primary-light text-primary">
+                  v1.0.2
+                </span>
+              </div>
+              <p class="text-sm text-text-muted mt-1 font-mono text-[13px]">com.example.apidocgen</p>
+              <div class="flex items-center gap-3 mt-2.5 text-xs text-text-light">
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                  Open Source
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
+                  1 version
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  2026-02-19
+                </span>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-text-light group-hover:text-primary transition-colors duration-200 shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </div>
+        </a>
+
+        <!-- Card 4 -->
+        <a href="#" class="block bg-white border border-border rounded-xl p-4 sm:p-5 hover:border-primary/30 hover:shadow-sm transition-all duration-200 cursor-pointer group">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h3 class="text-[15px] font-semibold text-secondary group-hover:text-primary transition-colors duration-200">
+                  Git Flow Helper
+                </h3>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-primary-light text-primary">
+                  v4.0.0
+                </span>
+              </div>
+              <p class="text-sm text-text-muted mt-1 font-mono text-[13px]">com.example.gitflow</p>
+              <div class="flex items-center gap-3 mt-2.5 text-xs text-text-light">
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                  DevOps Team
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
+                  8 versions
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  2026-02-18
+                </span>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-text-light group-hover:text-primary transition-colors duration-200 shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </div>
+        </a>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between mt-6 pt-4 border-t border-border">
+        <p class="text-sm text-text-muted">Showing 1-4 of 15</p>
+        <div class="flex items-center gap-1">
+          <button disabled class="px-3 py-1.5 text-sm rounded-md border border-border text-text-light bg-surface cursor-not-allowed">Prev</button>
+          <button class="px-3 py-1.5 text-sm rounded-md bg-primary text-white font-medium cursor-pointer">1</button>
+          <button class="px-3 py-1.5 text-sm rounded-md border border-border text-text-muted hover:bg-surface transition-colors duration-200 cursor-pointer">2</button>
+          <button class="px-3 py-1.5 text-sm rounded-md border border-border text-text-muted hover:bg-surface transition-colors duration-200 cursor-pointer">3</button>
+          <button class="px-3 py-1.5 text-sm rounded-md border border-border text-text-muted hover:bg-surface transition-colors duration-200 cursor-pointer">4</button>
+          <button class="px-3 py-1.5 text-sm rounded-md border border-border text-text-muted hover:bg-surface transition-colors duration-200 cursor-pointer">Next</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- PAGE: Plugin Detail            -->
+    <!-- ============================== -->
+    <section id="page-detail" class="page-section">
+      <!-- Breadcrumb -->
+      <a href="#" onclick="showPage('list')" class="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-primary transition-colors duration-200 cursor-pointer mb-5">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+        Back to plugins
+      </a>
+
+      <!-- Flash Message (Success) -->
+      <div class="flex items-center gap-3 bg-success-bg border border-success-border rounded-lg px-4 py-3 mb-6">
+        <svg class="w-5 h-5 text-success shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm text-success font-medium">v2.4.1 uploaded successfully</p>
+      </div>
+
+      <!-- Plugin Header -->
+      <div class="bg-white border border-border rounded-xl p-5 sm:p-6 mb-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-secondary">Code Formatter Pro</h1>
+            <p class="font-mono text-sm text-text-muted mt-1">com.example.codeformatter</p>
+          </div>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary-light text-primary shrink-0">
+            Latest: v2.4.1
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 text-sm text-text-muted">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+            JetBrains Labs
+          </span>
+          <a href="mailto:dev@jetbrains.com" class="flex items-center gap-1.5 hover:text-primary transition-colors duration-200 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+            dev@jetbrains.com
+          </a>
+          <a href="#" class="flex items-center gap-1.5 hover:text-primary transition-colors duration-200 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+            Website
+          </a>
+        </div>
+
+        <!-- IDE Repository URL -->
+        <div class="mt-5 p-3 bg-surface rounded-lg border border-border">
+          <p class="text-xs text-text-light mb-1.5 font-medium uppercase tracking-wider">IDE Repository URL</p>
+          <code class="text-sm font-mono text-primary select-all break-all">https://plugins.example.com/updatePlugins.xml</code>
+        </div>
+
+        <!-- Dependencies -->
+        <div class="mt-4">
+          <p class="text-xs text-text-light font-medium uppercase tracking-wider mb-2">Dependencies</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="px-2 py-0.5 bg-surface border border-border rounded text-xs font-mono text-text-muted">com.intellij.modules.platform</span>
+            <span class="px-2 py-0.5 bg-surface border border-border rounded text-xs font-mono text-text-muted">com.intellij.modules.lang</span>
+            <span class="px-2 py-0.5 bg-surface border border-border rounded text-xs font-mono text-text-muted">org.jetbrains.plugins.yaml</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Versions Table -->
+      <div class="bg-white border border-border rounded-xl overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b border-border">
+          <h2 class="text-base font-semibold text-secondary">Versions (5)</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-surface text-left">
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider">Version</th>
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider">Compatibility</th>
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider">Size</th>
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider">SHA-256</th>
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider">Uploaded</th>
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider sr-only">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5 font-medium text-secondary">v2.4.1</td>
+                <td class="px-5 py-3.5 text-text-muted font-mono text-xs">231 &rarr; 242.*</td>
+                <td class="px-5 py-3.5 text-text-muted">2.1 MB</td>
+                <td class="px-5 py-3.5"><code class="text-xs font-mono text-text-light bg-surface px-1.5 py-0.5 rounded" title="a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6">a1b2c3d4...</code></td>
+                <td class="px-5 py-3.5 text-text-muted">2026-02-21</td>
+                <td class="px-5 py-3.5">
+                  <button onclick="handleDeleteVersion('com.example.codeformatter', 'v2.4.1')" class="text-xs text-danger hover:text-danger-hover font-medium transition-colors duration-200 cursor-pointer">Delete</button>
+                </td>
+              </tr>
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5 font-medium text-secondary">v2.3.0</td>
+                <td class="px-5 py-3.5 text-text-muted font-mono text-xs">231 &rarr; 241.*</td>
+                <td class="px-5 py-3.5 text-text-muted">2.0 MB</td>
+                <td class="px-5 py-3.5"><code class="text-xs font-mono text-text-light bg-surface px-1.5 py-0.5 rounded">b2c3d4e5...</code></td>
+                <td class="px-5 py-3.5 text-text-muted">2026-02-15</td>
+                <td class="px-5 py-3.5">
+                  <button onclick="handleDeleteVersion('com.example.codeformatter', 'v2.3.0')" class="text-xs text-danger hover:text-danger-hover font-medium transition-colors duration-200 cursor-pointer">Delete</button>
+                </td>
+              </tr>
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5 font-medium text-secondary">v2.2.1</td>
+                <td class="px-5 py-3.5 text-text-muted font-mono text-xs">222 &rarr; 241.*</td>
+                <td class="px-5 py-3.5 text-text-muted">1.9 MB</td>
+                <td class="px-5 py-3.5"><code class="text-xs font-mono text-text-light bg-surface px-1.5 py-0.5 rounded">c3d4e5f6...</code></td>
+                <td class="px-5 py-3.5 text-text-muted">2026-02-01</td>
+                <td class="px-5 py-3.5">
+                  <button onclick="handleDeleteVersion('com.example.codeformatter', 'v2.2.1')" class="text-xs text-danger hover:text-danger-hover font-medium transition-colors duration-200 cursor-pointer">Delete</button>
+                </td>
+              </tr>
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5 font-medium text-secondary">v2.1.0</td>
+                <td class="px-5 py-3.5 text-text-muted font-mono text-xs">222 &rarr; 232.*</td>
+                <td class="px-5 py-3.5 text-text-muted">1.8 MB</td>
+                <td class="px-5 py-3.5"><code class="text-xs font-mono text-text-light bg-surface px-1.5 py-0.5 rounded">d4e5f6g7...</code></td>
+                <td class="px-5 py-3.5 text-text-muted">2026-01-20</td>
+                <td class="px-5 py-3.5">
+                  <button onclick="handleDeleteVersion('com.example.codeformatter', 'v2.1.0')" class="text-xs text-danger hover:text-danger-hover font-medium transition-colors duration-200 cursor-pointer">Delete</button>
+                </td>
+              </tr>
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5 font-medium text-secondary">v2.0.0</td>
+                <td class="px-5 py-3.5 text-text-muted font-mono text-xs">222 &rarr; 231.*</td>
+                <td class="px-5 py-3.5 text-text-muted">1.6 MB</td>
+                <td class="px-5 py-3.5"><code class="text-xs font-mono text-text-light bg-surface px-1.5 py-0.5 rounded">e5f6g7h8...</code></td>
+                <td class="px-5 py-3.5 text-text-muted">2026-01-10</td>
+                <td class="px-5 py-3.5">
+                  <button onclick="handleDeleteVersion('com.example.codeformatter', 'v2.0.0')" class="text-xs text-danger hover:text-danger-hover font-medium transition-colors duration-200 cursor-pointer">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Change Notes -->
+      <details class="bg-white border border-border rounded-xl overflow-hidden mb-6 group" open>
+        <summary class="px-5 py-4 cursor-pointer flex items-center gap-2 hover:bg-surface/50 transition-colors duration-200">
+          <svg class="w-4 h-4 text-text-light group-open:rotate-90 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+          <h2 class="text-base font-semibold text-secondary">Change Notes (v2.4.1)</h2>
+        </summary>
+        <div class="px-5 pb-5 text-sm text-text-muted leading-relaxed">
+          <ul class="list-disc list-inside space-y-1 mt-1">
+            <li>Added support for IntelliJ IDEA 2024.2</li>
+            <li>Fixed formatting issues with Kotlin DSL files</li>
+            <li>Improved performance for large files (>10MB)</li>
+            <li>Updated bundled formatters to latest versions</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Danger Zone -->
+      <div class="bg-white border-2 border-danger/20 rounded-xl p-5 sm:p-6">
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-danger shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+          <div>
+            <h3 class="text-base font-semibold text-danger">Danger Zone</h3>
+            <p class="text-sm text-text-muted mt-1">Delete this plugin and all 5 versions. This action cannot be undone.</p>
+            <button onclick="handleDeletePlugin('com.example.codeformatter', 5)" class="mt-3 px-4 py-2 bg-danger hover:bg-danger-hover text-white text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer">
+              Delete Plugin
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- PAGE: Upload                   -->
+    <!-- ============================== -->
+    <section id="page-upload" class="page-section">
+      <div class="max-w-xl mx-auto">
+        <h1 class="text-2xl font-bold text-secondary mb-6">Upload Plugin</h1>
+
+        <div class="bg-white border border-border rounded-xl p-5 sm:p-6">
+          <form onsubmit="handleUpload(event)">
+            <!-- File -->
+            <div class="mb-5">
+              <label for="file" class="block text-sm font-medium text-secondary mb-1.5">
+                Plugin File
+              </label>
+              <div class="relative">
+                <input type="file" id="file" accept=".zip,.jar"
+                       class="w-full px-3.5 py-2.5 bg-white border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary-light file:text-primary file:cursor-pointer cursor-pointer" />
+              </div>
+              <p class="text-xs text-text-light mt-1.5">Accepted: .zip, .jar &mdash; Max size: 100 MB</p>
+            </div>
+
+            <!-- Force -->
+            <div class="mb-6">
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer" />
+                <span class="text-sm text-text-muted">Overwrite if version exists</span>
+              </label>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              Upload
+            </button>
+          </form>
+        </div>
+
+        <!-- Gradle Alternative -->
+        <div class="mt-6 bg-white border border-border rounded-xl p-5 sm:p-6">
+          <h3 class="text-sm font-semibold text-secondary flex items-center gap-2">
+            <svg class="w-4 h-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            Or use Gradle (recommended)
+          </h3>
+          <div class="mt-3 bg-secondary rounded-lg p-4 overflow-x-auto">
+            <code class="text-sm font-mono text-green-400">PLUGIN_REGISTRY_TOKEN=xxx ./gradlew uploadPlugin</code>
+          </div>
+          <p class="text-xs text-text-light mt-2">See Gradle Plugin documentation for setup instructions.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- PAGE: Stats                    -->
+    <!-- ============================== -->
+    <section id="page-stats" class="page-section">
+      <h1 class="text-2xl font-bold text-secondary mb-6">Registry Statistics</h1>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white border border-border rounded-xl p-5 text-center">
+          <p class="text-xs font-semibold text-text-light uppercase tracking-wider">Plugins</p>
+          <p class="text-3xl font-bold text-secondary mt-2 font-mono">15</p>
+        </div>
+        <div class="bg-white border border-border rounded-xl p-5 text-center">
+          <p class="text-xs font-semibold text-text-light uppercase tracking-wider">Versions</p>
+          <p class="text-3xl font-bold text-secondary mt-2 font-mono">42</p>
+        </div>
+        <div class="bg-white border border-border rounded-xl p-5 text-center">
+          <p class="text-xs font-semibold text-text-light uppercase tracking-wider">Storage</p>
+          <p class="text-3xl font-bold text-secondary mt-2 font-mono">1.2 <span class="text-lg text-text-muted">GB</span></p>
+        </div>
+      </div>
+
+      <!-- Service Info -->
+      <div class="bg-white border border-border rounded-xl overflow-hidden mb-8">
+        <div class="px-5 py-4 border-b border-border">
+          <h2 class="text-base font-semibold text-secondary">Service Info</h2>
+        </div>
+        <div class="divide-y divide-border">
+          <div class="flex items-center justify-between px-5 py-3.5">
+            <span class="text-sm text-text-muted">Uptime</span>
+            <span class="text-sm font-medium text-secondary">3d 12h 30m</span>
+          </div>
+          <div class="flex items-center justify-between px-5 py-3.5">
+            <span class="text-sm text-text-muted">Database</span>
+            <span class="text-sm font-medium text-secondary flex items-center gap-1.5">
+              <span class="w-2 h-2 bg-success rounded-full"></span>
+              SQLite
+            </span>
+          </div>
+          <div class="flex items-center justify-between px-5 py-3.5">
+            <span class="text-sm text-text-muted">Runtime</span>
+            <span class="text-sm font-medium text-secondary font-mono">Bun 1.2.3</span>
+          </div>
+          <div class="flex items-center justify-between px-5 py-3.5">
+            <span class="text-sm text-text-muted">Start Time</span>
+            <span class="text-sm font-medium text-secondary">2026-02-18 10:00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Uploads -->
+      <div class="bg-white border border-border rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-border">
+          <h2 class="text-base font-semibold text-secondary">Recent Uploads</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-surface text-left">
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider">Plugin</th>
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider">Version</th>
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider">Size</th>
+                <th class="px-5 py-3 text-xs font-semibold text-text-light uppercase tracking-wider">Uploaded</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5">
+                  <a href="#" onclick="showPage('detail')" class="font-medium text-primary hover:text-primary-hover transition-colors duration-200 cursor-pointer">com.example.codeformatter</a>
+                </td>
+                <td class="px-5 py-3.5 text-text-muted">v2.4.1</td>
+                <td class="px-5 py-3.5 text-text-muted">2.1 MB</td>
+                <td class="px-5 py-3.5 text-text-muted">2026-02-21</td>
+              </tr>
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5">
+                  <a href="#" class="font-medium text-primary hover:text-primary-hover transition-colors duration-200 cursor-pointer">com.example.dbnavigator</a>
+                </td>
+                <td class="px-5 py-3.5 text-text-muted">v3.1.0</td>
+                <td class="px-5 py-3.5 text-text-muted">3.5 MB</td>
+                <td class="px-5 py-3.5 text-text-muted">2026-02-20</td>
+              </tr>
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5">
+                  <a href="#" class="font-medium text-primary hover:text-primary-hover transition-colors duration-200 cursor-pointer">com.example.apidocgen</a>
+                </td>
+                <td class="px-5 py-3.5 text-text-muted">v1.0.2</td>
+                <td class="px-5 py-3.5 text-text-muted">1.2 MB</td>
+                <td class="px-5 py-3.5 text-text-muted">2026-02-19</td>
+              </tr>
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5">
+                  <a href="#" class="font-medium text-primary hover:text-primary-hover transition-colors duration-200 cursor-pointer">com.example.gitflow</a>
+                </td>
+                <td class="px-5 py-3.5 text-text-muted">v4.0.0</td>
+                <td class="px-5 py-3.5 text-text-muted">4.8 MB</td>
+                <td class="px-5 py-3.5 text-text-muted">2026-02-18</td>
+              </tr>
+              <tr class="hover:bg-surface/50 transition-colors duration-150">
+                <td class="px-5 py-3.5">
+                  <a href="#" class="font-medium text-primary hover:text-primary-hover transition-colors duration-200 cursor-pointer">com.example.testrunner</a>
+                </td>
+                <td class="px-5 py-3.5 text-text-muted">v1.5.0</td>
+                <td class="px-5 py-3.5 text-text-muted">0.8 MB</td>
+                <td class="px-5 py-3.5 text-text-muted">2026-02-17</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-12 border-t border-border">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div class="flex items-center justify-between text-xs text-text-light">
+        <span>JetBrains Private Plugin Registry</span>
+        <span>Powered by Bun + Hono</span>
+      </div>
+    </div>
+  </footer>
+
+  </div><!-- /app-container -->
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4">
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="w-5 h-5 text-danger" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        </svg>
+        <h3 class="text-base font-semibold text-danger">Confirm Delete</h3>
+      </div>
+      <p id="delete-modal-desc" class="text-sm text-text-muted mt-2 mb-5"></p>
+      <div class="flex gap-3">
+        <button onclick="cancelDeleteModal()" class="flex-1 px-4 py-2 border border-border text-sm font-medium text-text-muted rounded-lg hover:bg-surface transition-colors duration-200 cursor-pointer">
+          Cancel
+        </button>
+        <button onclick="confirmDeleteModal()" class="flex-1 px-4 py-2 bg-danger hover:bg-danger-hover text-white text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-20 right-6 z-50 hidden">
+    <div id="toast-inner" class="flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium border">
+      <span id="toast-icon"></span>
+      <span id="toast-msg"></span>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // ============ Auth / Session ============
+    // In real app: POST /api/login → server validates against ADMIN_USER/ADMIN_PASS env vars
+    // → returns session cookie (httpOnly) → subsequent requests carry cookie automatically
+    // For prototype: simulate with sessionStorage
+
+    function isLoggedIn() {
+      return sessionStorage.getItem('logged_in') === 'true';
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+
+      if (!username || !password) {
+        document.getElementById('login-error').classList.remove('hidden');
+        document.getElementById('login-error').textContent = 'Please enter both username and password.';
+        return;
+      }
+
+      // In real app: POST /api/login with { username, password }
+      // Server checks against ADMIN_USER + ADMIN_PASS env vars
+      // On success: sets httpOnly session cookie
+      // For prototype: simulate success
+      sessionStorage.setItem('logged_in', 'true');
+      sessionStorage.setItem('username', username);
+      enterApp();
+    }
+
+    function handleLogout() {
+      sessionStorage.removeItem('logged_in');
+      sessionStorage.removeItem('username');
+      // In real app: POST /api/logout → server clears session cookie
+      document.getElementById('page-login').classList.remove('hidden');
+      document.getElementById('app-container').classList.add('hidden');
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-error').classList.add('hidden');
+    }
+
+    function enterApp() {
+      document.getElementById('page-login').classList.add('hidden');
+      document.getElementById('app-container').classList.remove('hidden');
+      showPage('list');
+    }
+
+    // ============ Page Navigation ============
+    function showPage(page) {
+      document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelectorAll('.nav-link').forEach(l => {
+        l.classList.remove('text-primary', 'bg-primary/5');
+        l.classList.add('text-text-muted');
+      });
+      const activeNav = document.getElementById('nav-' + page);
+      if (activeNav) {
+        activeNav.classList.remove('text-text-muted');
+        activeNav.classList.add('text-primary', 'bg-primary/5');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ============ Delete Confirmation ============
+    let deleteModalResolve = null;
+
+    function confirmDelete(description) {
+      return new Promise((resolve, reject) => {
+        deleteModalResolve = { resolve, reject };
+        document.getElementById('delete-modal-desc').textContent = description;
+        const modal = document.getElementById('delete-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      });
+    }
+    function confirmDeleteModal() {
+      const modal = document.getElementById('delete-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      if (deleteModalResolve) deleteModalResolve.resolve(true);
+      deleteModalResolve = null;
+    }
+    function cancelDeleteModal() {
+      const modal = document.getElementById('delete-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      if (deleteModalResolve) deleteModalResolve.reject(new Error('cancelled'));
+      deleteModalResolve = null;
+    }
+
+    // ============ Toast ============
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      const inner = document.getElementById('toast-inner');
+      const icon = document.getElementById('toast-icon');
+      const msgEl = document.getElementById('toast-msg');
+
+      if (type === 'success') {
+        inner.className = 'flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium border bg-success-bg border-success-border text-success';
+        icon.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+      } else {
+        inner.className = 'flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium border bg-danger-bg border-danger-border text-danger';
+        icon.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>';
+      }
+      msgEl.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    // ============ Action Handlers ============
+    async function handleDeleteVersion(pluginId, version) {
+      try {
+        await confirmDelete('Delete version ' + version + ' of ' + pluginId + '? This action cannot be undone.');
+        // In real app: DELETE /api/plugins/{id}/versions/{version} (session cookie auto-sent)
+        showToast('Version ' + version + ' deleted successfully.');
+      } catch (e) { /* cancelled */ }
+    }
+
+    async function handleDeletePlugin(pluginId, versionCount) {
+      try {
+        await confirmDelete('Delete ' + pluginId + ' and all ' + versionCount + ' versions? This action cannot be undone.');
+        // In real app: DELETE /api/plugins/{id} (session cookie auto-sent)
+        showToast('Plugin ' + pluginId + ' deleted successfully.');
+        showPage('list');
+      } catch (e) { /* cancelled */ }
+    }
+
+    function handleUpload(event) {
+      event.preventDefault();
+      const fileInput = document.getElementById('file');
+
+      if (!fileInput.files.length) {
+        showToast('Please select a plugin file.', 'error');
+        return;
+      }
+      // In real app: POST /api/plugins with multipart/form-data (session cookie auto-sent)
+      showToast('Plugin uploaded successfully!');
+      showPage('detail');
+    }
+
+    // ============ ESC to close modals ============
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        cancelDeleteModal();
+      }
+    });
+
+    // ============ Init ============
+    if (isLoggedIn()) {
+      enterApp();
+    }
+  </script>
+</body>
+</html>

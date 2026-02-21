@@ -1,0 +1,18 @@
+services:
+  registry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - registry-data:/app/data
+    environment:
+      - BASE_URL=https://plugins.example.com
+      - AUTH_TOKENS=your-secret-token
+      - ADMIN_PASS=your-admin-password
+      - SESSION_SECRET=your-session-secret
+    restart: unless-stopped
+
+volumes:
+  registry-data:
