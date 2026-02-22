@@ -42,7 +42,7 @@ class UploadPluginFunctionalTest {
         File(projectDir, "build.gradle.kts").writeText(
             """
             plugins {
-                id("com.example.private-plugin-registry")
+                id("com.github.hangox.private-plugin-registry")
             }
 
             privateRegistry {
@@ -88,7 +88,7 @@ class UploadPluginFunctionalTest {
         File(projectDir, "build.gradle.kts").writeText(
             """
             plugins {
-                id("com.example.private-plugin-registry")
+                id("com.github.hangox.private-plugin-registry")
             }
             privateRegistry {
                 url = "http://localhost:${mockServer.address.port}"

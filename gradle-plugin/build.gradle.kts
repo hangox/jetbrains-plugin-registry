@@ -4,7 +4,7 @@ plugins {
     `java-gradle-plugin`
 }
 
-group = "com.example"
+group = "com.github.hangox.jetbrains-plugin-registry"
 version = "1.0.0"
 
 java {
@@ -32,7 +32,7 @@ tasks.test {
 gradlePlugin {
     plugins {
         create("privateRegistry") {
-            id = "com.example.private-plugin-registry"
+            id = "com.github.hangox.private-plugin-registry"
             implementationClass = "com.example.registry.PrivateRegistryPlugin"
             displayName = "Private Plugin Registry"
             description = "Upload JetBrains plugins to a private registry"
@@ -61,19 +61,3 @@ tasks.register<Test>("functionalTest") {
     useJUnitPlatform()
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/${providers.gradleProperty("gpr.owner").orNull ?: "OWNER"}/${providers.gradleProperty("gpr.repo").orNull ?: "jetbrains-plugin-registry"}")
-            credentials {
-                username = providers.environmentVariable("GITHUB_ACTOR")
-                    .orElse(providers.gradleProperty("gpr.user"))
-                    .orNull
-                password = providers.environmentVariable("GITHUB_TOKEN")
-                    .orElse(providers.gradleProperty("gpr.key"))
-                    .orNull
-            }
-        }
-    }
-}

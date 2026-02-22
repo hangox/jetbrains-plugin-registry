@@ -9,7 +9,7 @@ class PrivateRegistryPluginTest {
     @Test
     fun `plugin registers privateRegistry extension`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.example.private-plugin-registry")
+        project.plugins.apply("com.github.hangox.private-plugin-registry")
 
         val extension = project.extensions.findByName("privateRegistry")
         assertNotNull(extension)
@@ -19,7 +19,7 @@ class PrivateRegistryPluginTest {
     @Test
     fun `plugin registers uploadPlugin task`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.example.private-plugin-registry")
+        project.plugins.apply("com.github.hangox.private-plugin-registry")
 
         val task = project.tasks.findByName("uploadPlugin")
         assertNotNull(task)
@@ -29,7 +29,7 @@ class PrivateRegistryPluginTest {
     @Test
     fun `uploadPlugin task has correct group and description`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.example.private-plugin-registry")
+        project.plugins.apply("com.github.hangox.private-plugin-registry")
 
         val task = project.tasks.getByName("uploadPlugin")
         assertEquals("publishing", task.group)
@@ -39,7 +39,7 @@ class PrivateRegistryPluginTest {
     @Test
     fun `extension has correct default values`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.example.private-plugin-registry")
+        project.plugins.apply("com.github.hangox.private-plugin-registry")
 
         val extension = project.extensions.getByType(PrivateRegistryExtension::class.java)
         assertEquals(false, extension.forceOverwrite.get())
@@ -52,7 +52,7 @@ class PrivateRegistryPluginTest {
     @Test
     fun `extension url and token are not set by default`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.example.private-plugin-registry")
+        project.plugins.apply("com.github.hangox.private-plugin-registry")
 
         val extension = project.extensions.getByType(PrivateRegistryExtension::class.java)
         assertFalse(extension.url.isPresent)
@@ -62,7 +62,7 @@ class PrivateRegistryPluginTest {
     @Test
     fun `extension values are passed to task`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.example.private-plugin-registry")
+        project.plugins.apply("com.github.hangox.private-plugin-registry")
 
         val extension = project.extensions.getByType(PrivateRegistryExtension::class.java)
         extension.url.set("https://plugins.example.com")

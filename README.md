@@ -42,7 +42,7 @@ http://localhost:3000/updatePlugins.xml
 // settings.gradle.kts
 pluginManagement {
     repositories {
-        mavenLocal()  // 或 GitHub Packages
+        maven { url = uri("https://jitpack.io") }
         gradlePluginPortal()
     }
 }
@@ -52,7 +52,7 @@ pluginManagement {
 // build.gradle.kts
 plugins {
     id("org.jetbrains.intellij.platform") version "2.2.1"
-    id("com.example.private-plugin-registry") version "1.0.0"
+    id("com.github.hangox.private-plugin-registry") version "v1.0.0"
 }
 
 privateRegistry {
@@ -167,4 +167,4 @@ privateRegistry {
 
 ## 许可证
 
-Private — 47lab
+MIT
