@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>com.example.sample-plugin</id>
+    <name>Sample Plugin</name>
+    <version>1.0.0</version>
+    <vendor email="test@example.com" url="https://example.com">Example Inc</vendor>
+
+    <description><![CDATA[
+    A minimal sample plugin for testing the private plugin registry.
+    ]]></description>
+
+    <change-notes><![CDATA[
+    <ul>
+        <li>1.0.0 - Initial release for integration testing</li>
+    </ul>
+    ]]></change-notes>
+
+    <idea-version since-build="241" until-build="251.*"/>
+
+    <depends>com.intellij.modules.platform</depends>
+</idea-plugin>
