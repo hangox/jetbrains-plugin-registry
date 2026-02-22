@@ -64,19 +64,14 @@ tasks.register<Test>("functionalTest") {
 publishing {
     repositories {
         maven {
-            name = "PrivateRepo"
-            url = uri(
-                if (version.toString().endsWith("-SNAPSHOT"))
-                    "https://maven.example.com/snapshots"
-                else
-                    "https://maven.example.com/releases"
-            )
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/${providers.gradleProperty("gpr.owner").orNull ?: "OWNER"}/${providers.gradleProperty("gpr.repo").orNull ?: "jetbrains-plugin-registry"}")
             credentials {
-                username = providers.environmentVariable("MAVEN_USER")
-                    .orElse(providers.gradleProperty("maven.user"))
+                username = providers.environmentVariable("GITHUB_ACTOR")
+                    .orElse(providers.gradleProperty("gpr.user"))
                     .orNull
-                password = providers.environmentVariable("MAVEN_PASSWORD")
-                    .orElse(providers.gradleProperty("maven.password"))
+                password = providers.environmentVariable("GITHUB_TOKEN")
+                    .orElse(providers.gradleProperty("gpr.key"))
                     .orNull
             }
         }

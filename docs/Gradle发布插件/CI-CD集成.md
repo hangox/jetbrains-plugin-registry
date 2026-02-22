@@ -98,6 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: write
 
     steps:
       - name: Checkout
@@ -120,6 +121,11 @@ jobs:
       - name: Run tests
         run: ./gradlew check
 
+      - name: Publish to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew publishAllPublicationsToGitHubPackagesRepository
+
       - name: Upload to registry
         env:
           PLUGIN_REGISTRY_TOKEN: ${{ secrets.PLUGIN_REGISTRY_TOKEN }}
@@ -140,6 +146,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
 
     steps:
       - uses: actions/checkout@v4

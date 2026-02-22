@@ -77,7 +77,15 @@ gradle-plugin/
 // settings.gradle.kts
 pluginManagement {
     repositories {
-        maven { url = uri("https://maven.example.com/releases") }
+        maven {
+            url = uri("https://maven.pkg.github.com/OWNER/jetbrains-plugin-registry")
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull
+                    ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull
+                    ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
         gradlePluginPortal()
     }
 }

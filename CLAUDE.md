@@ -82,6 +82,9 @@ cd gradle-plugin
 
 # 功能测试
 ./gradlew functionalTest
+
+# 发布到 GitHub Packages
+./gradlew publishAllPublicationsToGitHubPackagesRepository
 ```
 
 ## 认证机制
