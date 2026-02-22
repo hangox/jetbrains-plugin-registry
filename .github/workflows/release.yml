@@ -67,6 +67,11 @@ jobs:
             -H "Authorization: Bearer $TOKEN" \
             | jq -r '.[] | select(.Name=="jetbrains-plugin-registry") | .Id')
 
+          if [ -z "$STACK_ID" ]; then
+            echo "❌ Stack 'jetbrains-plugin-registry' not found in Portainer (endpointId=2)"
+            exit 1
+          fi
+
           echo "Stack ID: $STACK_ID, Version: $VERSION"
 
           # 获取当前 stack 文件内容并更新镜像 tag
