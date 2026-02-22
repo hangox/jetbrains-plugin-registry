@@ -1,10 +1,10 @@
 import { config } from "../config";
 import type { PluginRepository } from "./types";
+import { SqlitePluginRepository } from "./sqlite";
 
 export function createRepository(): PluginRepository {
   switch (config.db.type) {
     case "sqlite": {
-      const { SqlitePluginRepository } = require("./sqlite");
       const dbPath = `${config.dataDir}/${config.db.url}`;
       return new SqlitePluginRepository(dbPath);
     }
