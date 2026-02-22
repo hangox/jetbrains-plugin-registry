@@ -6,8 +6,8 @@ dist/
 build/
 *.class
 
-# Bun
-server/bun.lock
+# Bun（bun.lock 为文本格式锁文件，需提交到仓库以确保 Docker 构建可复现）
+# server/bun.lock
 
 # Gradle
 .gradle/
