@@ -43,6 +43,47 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  deploy:
+    name: Deploy to Production
+    needs: docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via Portainer API
+        env:
+          PORTAINER_PASS: ${{ secrets.PORTAINER_PASS }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG#v}"
+
+          # 获取 Portainer JWT token
+          TOKEN=$(curl -sf -X POST "https://portainer.47lab.cn/api/auth" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"hangox\",\"password\":\"$PORTAINER_PASS\"}" \
+            | jq -r '.jwt')
+
+          # 获取 stack ID（在 endpointId=2 上查找）
+          STACK_ID=$(curl -sf "https://portainer.47lab.cn/api/stacks?endpointId=2" \
+            -H "Authorization: Bearer $TOKEN" \
+            | jq -r '.[] | select(.Name=="jetbrains-plugin-registry") | .Id')
+
+          echo "Stack ID: $STACK_ID, Version: $VERSION"
+
+          # 获取当前 stack 文件内容并更新镜像 tag
+          CURRENT_CONTENT=$(curl -sf "https://portainer.47lab.cn/api/stacks/$STACK_ID/file" \
+            -H "Authorization: Bearer $TOKEN" | jq -r '.StackFileContent')
+
+          NEW_CONTENT=$(echo "$CURRENT_CONTENT" | \
+            sed "s|hangox/jetbrains-plugin-registry:[^[:space:]]*|hangox/jetbrains-plugin-registry:$VERSION|g")
+
+          # 更新 stack（Portainer 自动 pull 新镜像并重启容器）
+          curl -sf -X PUT "https://portainer.47lab.cn/api/stacks/$STACK_ID/string?endpointId=2" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"stackFileContent\": $(echo "$NEW_CONTENT" | jq -Rs .), \"pullImage\": true, \"env\": []}"
+
+          echo "✅ Deployed jetbrains-plugin-registry:$VERSION"
+
   release:
     name: GitHub Release
     needs: test
